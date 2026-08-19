@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Payment Received</h2>
+<p>Thank you for your payment. Here is your transaction summary:</p>
+<table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+  <tr style="border-bottom: 1px solid #ebecf0;"><td style="padding: 8px 0; color: #6b778c;">Receipt ID</td><td style="padding: 8px 0; text-align: right; font-weight: 600;">{{ receipt_id }}</td></tr>
+  <tr style="border-bottom: 1px solid #ebecf0;"><td style="padding: 8px 0; color: #6b778c;">Amount</td><td style="padding: 8px 0; text-align: right; font-weight: 600;">{{ currency }} {{ amount }}</td></tr>
+  <tr><td style="padding: 8px 0; color: #6b778c;">Date</td><td style="padding: 8px 0; text-align: right;">{{ payment_date | default("Today") }}</td></tr>
+</table>
+{% endblock %}

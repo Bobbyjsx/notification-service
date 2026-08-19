@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ subject }}</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: #f4f5f7;
+      color: #172b4d;
+      -webkit-font-smoothing: antialiased;
+    }
+    .container {
+      max-width: 600px;
+      margin: 40px auto;
+      background: #ffffff;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(9, 30, 66, 0.05);
+    }
+    .header {
+      background: {% if branding and branding.primary_color %}{{ branding.primary_color }}{% else %}#0052cc{% endif %};
+      padding: 24px 32px;
+      text-align: center;
+      color: #ffffff;
+    }
+    .header h1 {
+      margin: 0;
+      font-size: 24px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      color: #ffffff;
+    }
+    .content {
+      padding: 32px;
+    }
+    .greeting {
+      font-size: 18px;
+      font-weight: 500;
+      margin-bottom: 24px;
+    }
+    .otp-code {
+      font-size: 32px;
+      font-weight: 700;
+      letter-spacing: 6px;
+      text-align: center;
+      margin: 24px 0;
+      padding: 16px;
+      background: #ebecf0;
+      border-radius: 6px;
+      color: #091e42;
+      font-family: monospace;
+    }
+    .btn {
+      display: inline-block;
+      padding: 12px 24px;
+      background-color: {% if branding and branding.primary_color %}{{ branding.primary_color }}{% else %}#0052cc{% endif %};
+      color: #ffffff !important;
+      text-decoration: none;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 15px;
+      margin: 20px 0;
+    }
+    .btn-container {
+      text-align: center;
+    }
+    .footer {
+      background: #fafbfc;
+      padding: 20px 32px;
+      text-align: center;
+      font-size: 12px;
+      color: #6b778c;
+      border-top: 1px solid #ebecf0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      {% if branding and branding.logo_with_text %}
+        <img src="{{ branding.logo_with_text }}" alt="{{ app_name | default('Platform') }} Logo" style="display: block; margin: 0 auto; max-height: 40px; width: auto; border: 0;">
+      {% elif branding and branding.logo_url %}
+        <table role="presentation" border="0" cellpadding="0" cellspacing="0" style="margin: 0 auto;">
+          <tr>
+            <td style="padding-right: 12px; vertical-align: middle;">
+              <img src="{{ branding.logo_url }}" alt="{{ app_name | default('Platform') }} Logo" style="display: block; max-height: 32px; width: auto; border: 0;">
+            </td>
+            <td style="vertical-align: middle;">
+              <h1>{{ app_name | default('Platform') }}</h1>
+            </td>
+          </tr>
+        </table>
+      {% else %}
+        <h1>{{ app_name | default("Platform") }}</h1>
+      {% endif %}
+    </div>
+    <div class="content">
+      {% if first_name %}
+      <div class="greeting">Hello {{ first_name }},</div>
+      {% else %}
+      <div class="greeting">Hello,</div>
+      {% endif %}
+      
+      {% block content %}{% endblock %}
+    </div>
+    <div class="footer">
+      <p>This is an automated notification from {{ app_name | default("Platform") }}. Please do not reply directly to this email.</p>
+    </div>
+  </div>
+</body>
+</html>

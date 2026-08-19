@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>{{ title | default("Notification") }}</h2>
+<p>{{ body }}</p>
+{% if action_url %}
+<div class="btn-container">
+  <a href="{{ action_url }}" class="btn">{{ action_text | default("View Details") }}</a>
+</div>
+{% endif %}
+{% endblock %}

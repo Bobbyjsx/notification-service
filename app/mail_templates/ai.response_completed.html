@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>AI Task Completed</h2>
+<p>Your background AI task <strong>{{ task_title }}</strong> has finished processing.</p>
+{% if summary %}
+<div style="background: #f4f5f7; padding: 16px; border-radius: 6px; margin: 16px 0;">
+  <p style="margin: 0; font-size: 14px;">{{ summary }}</p>
+</div>
+{% endif %}
+{% if result_url %}
+<div class="btn-container">
+  <a href="{{ result_url }}" class="btn">View Results</a>
+</div>
+{% endif %}
+{% endblock %}
