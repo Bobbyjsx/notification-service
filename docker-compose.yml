@@ -1,0 +1,24 @@
+services:
+  notification-service:
+    build: .
+    image: notification-service
+    ports:
+      - "8003:8003"
+    environment:
+      GOOGLE_APPLICATION_CREDENTIALS: /app/firebase-credentials.json
+      GOOGLE_CLOUD_PROJECT: project-atlas-501612
+      FIRESTORE_DATABASE: "(default)"
+    env_file:
+      - .env
+    volumes:
+      - ./firebase-credentials.json:/app/firebase-credentials.json:ro
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8003 --reload
+    develop:
+      watch:
+        - action: sync
+          path: ./app
+          target: /app/app
+        - action: rebuild
+          path: requirements.txt
+        - action: rebuild
+          path: Dockerfile
