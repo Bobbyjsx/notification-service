@@ -16,9 +16,9 @@ repos:
 
   - repo: local
     hooks:
-      - id: pytest-unit-tests
-        name: pytest (unit tests)
-        entry: ./.venv/bin/pytest tests/unit/test_logger_middleware.py tests/unit/test_security.py tests/unit/test_state_machine.py tests/unit/test_template_renderer.py
+      - id: make-test
+        name: make test
+        entry: make test
         language: system
         pass_filenames: false
         always_run: true
