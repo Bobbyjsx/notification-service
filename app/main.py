@@ -119,17 +119,38 @@ async def handle_validation_error(request: Request, exc: RequestValidationError)
     formatted_errors = []
     for err in exc.errors():
         loc = ".".join(str(p) for p in err.get("loc", []))
-        formatted_errors.append({
-            "field": loc,
-            "message": err.get("msg", "Invalid value"),
-            "type": err.get("type", "value_error"),
-        })
+        formatted_errors.append(
+            {
+                "field": loc,
+                "message": err.get("msg", "Invalid value"),
+                "type": err.get("type", "value_error"),
+            }
+        )
 
     first_msg = (
         f"Validation failed on '{formatted_errors[0]['field']}': {formatted_errors[0]['message']}"
         if formatted_errors
         else "Request validation failed"
     )
+
+    # For Pub/Sub push endpoints, returning 4xx causes GCP Pub/Sub to retry endlessly.
+    # We acknowledge with 200 OK and record the rejection so the poison message is dropped.
+    if request.url.path.endswith("/events/pubsub"):
+        logger.warning(
+            "Pub/Sub push message failed schema validation. Acknowledging with HTTP 200 to prevent retry loop: %s",
+            first_msg,
+        )
+        return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content={
+                "status": "rejected",
+                "event_id": "unknown",
+                "notification_id": None,
+                "action_taken": "dropped",
+                "reason": f"Pub/Sub push payload failed schema validation: {first_msg}",
+                "details": {"errors": formatted_errors},
+            },
+        )
 
     return JSONResponse(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,

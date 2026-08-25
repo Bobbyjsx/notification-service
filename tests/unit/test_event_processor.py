@@ -61,6 +61,7 @@ async def test_process_unmapped_event_ignored(db):
         source="audit-service",
         timestamp="2026-08-19T10:00:00Z",
         data={"action": "login"},
+        subject="Hello world",
     )
 
     res = await service.process_event(event)

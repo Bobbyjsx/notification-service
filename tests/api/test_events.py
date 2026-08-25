@@ -67,3 +67,32 @@ async def test_pubsub_push_ingest(async_client: AsyncClient):
     assert data["status"] == "accepted"
     assert data["action_taken"] == "queued"
     assert data["event_id"] == "evt_pubsub_200"
+
+
+@pytest.mark.asyncio
+async def test_pubsub_push_malformed_data_acknowledged(async_client: AsyncClient):
+    envelope = {
+        "message": {
+            "data": "not_valid_base64_or_json!@#$",
+            "messageId": "msg_bad_data_123",
+            "publishTime": "2026-08-25T10:00:00Z",
+        },
+        "subscription": "projects/test-project/subscriptions/notification-sub",
+    }
+    response = await async_client.post("/api/v1/events/pubsub", json=envelope)
+    assert response.status_code == 200
+    data = response.json()
+    assert data["status"] == "rejected"
+    assert data["action_taken"] == "dropped"
+    assert data["event_id"] == "msg_bad_data_123"
+
+
+@pytest.mark.asyncio
+async def test_pubsub_push_invalid_schema_acknowledged(async_client: AsyncClient):
+    # Invalid envelope structure
+    envelope = {"invalid_key": "bad_structure"}
+    response = await async_client.post("/api/v1/events/pubsub", json=envelope)
+    assert response.status_code == 200
+    data = response.json()
+    assert data["status"] == "rejected"
+    assert data["action_taken"] == "dropped"

@@ -4,7 +4,7 @@ import time
 # Set environment variables for the Firestore emulator and test runner
 os.environ["FIRESTORE_EMULATOR_HOST"] = "127.0.0.1:8080"
 os.environ["GOOGLE_CLOUD_PROJECT"] = "test-project"
-os.environ["FIRESTORE_DATABASE"] = "(default)"
+os.environ["FIRESTORE_DATABASE"] = "notification-service-db"
 os.environ["ENVIRONMENT"] = "development"
 os.environ["ENABLE_MOCK_DELIVERY"] = "true"
 os.environ["JWT_SECRET_KEY"] = "test-jwt-secret-key-12345678901234567890"

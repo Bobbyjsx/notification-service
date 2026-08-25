@@ -5,7 +5,7 @@ import time
 from typing import Any
 
 import jwt
-from jwt import PyJWKClient, PyJWTError
+from jwt import PyJWKClient
 from pydantic import BaseModel
 
 from app.core.config import settings

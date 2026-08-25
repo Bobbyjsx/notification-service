@@ -160,11 +160,11 @@ class EventProcessorService:
         # Extract app_name or default to source
         if "app_name" not in template_context and "app_name" in data:
             template_context["app_name"] = data["app_name"]
-            
+
         # Extract first_name for personalization
         if "first_name" not in template_context and "first_name" in data:
             template_context["first_name"] = data["first_name"]
-            
+
         # Extract branding block for template customization
         if "branding" not in template_context and "branding" in data:
             template_context["branding"] = data["branding"]

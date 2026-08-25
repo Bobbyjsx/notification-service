@@ -96,7 +96,7 @@ class DeliveryWorkerService:
                 # Merge fetched branding into template context without overwriting explicit event data
                 if "app_name" not in task.template_context and "app_name" in brand_config:
                     task.template_context["app_name"] = brand_config["app_name"]
-                
+
                 if "branding" not in task.template_context and "branding" in brand_config:
                     # Filter out None values to let templates fall back to defaults gracefully
                     clean_branding = {k: v for k, v in brand_config["branding"].items() if v is not None}
@@ -138,7 +138,7 @@ class DeliveryWorkerService:
             app_name = task.template_context.get("app_name", "Platform")
             default_email = settings.default_from_email
             from_email = f"{app_name} <{default_email}>"
-            
+
             result = await self.email_provider.send_email(
                 to=task.recipient,
                 subject=resolved_subject,

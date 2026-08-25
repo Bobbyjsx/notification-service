@@ -1,5 +1,7 @@
 from fastapi import APIRouter, Depends, status
 
+from app.core.errors import EventParsingError
+from app.core.logger import logger
 from app.core.security import ServiceIdentity
 from app.dependencies import get_current_service, get_event_processor_service
 from app.schemas.event import (
@@ -41,7 +43,23 @@ async def ingest_pubsub_event(
 ) -> EventIngestResponse:
     """
     Receives and decodes push events from Google Cloud Pub/Sub.
-    Returns HTTP 200 to acknowledge the message.
+    Returns HTTP 200 to acknowledge the message and prevents retry loops on malformed messages.
     """
-    event = event_processor.parse_pubsub_message(envelope)
-    return await event_processor.process_event(event)
+    try:
+        event = event_processor.parse_pubsub_message(envelope)
+        return await event_processor.process_event(event)
+    except EventParsingError as exc:
+        msg_id = envelope.message.messageId if envelope.message else "unknown"
+        logger.warning(
+            "Acknowledging unparseable Pub/Sub message %s to prevent infinite retries: %s",
+            msg_id,
+            exc.message,
+        )
+        return EventIngestResponse(
+            status="rejected",
+            event_id=msg_id,
+            notification_id=None,
+            action_taken="dropped",
+            reason=exc.message,
+            details=exc.details,
+        )

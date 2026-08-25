@@ -77,7 +77,7 @@ class TemplateRenderer:
         self.validate_template_context(template_id, context)
 
         resolved_subject = subject or template_def.get("default_subject", "Notification")
-        
+
         # We assume the HTML file is named `<template_id>.html`
         template_filename = f"{template_id}.html"
 
