@@ -1,9 +1,14 @@
+from __future__ import annotations
+
 import base64
 import json
 import logging
 import uuid
 from datetime import UTC, datetime
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from app.services.delivery_worker import DeliveryWorkerService
 
 from app.core.errors import EventParsingError
 from app.core.state_machine import NotificationStatus
@@ -55,11 +60,13 @@ class EventProcessorService:
         idempotency_repo: IdempotencyRepository,
         tasks_dispatcher: CloudTasksDispatcher,
         renderer: TemplateRenderer = template_renderer,
+        delivery_worker: DeliveryWorkerService | None = None,
     ) -> None:
         self.notification_repo = notification_repo
         self.idempotency_repo = idempotency_repo
         self.tasks_dispatcher = tasks_dispatcher
         self.renderer = renderer
+        self.delivery_worker = delivery_worker
 
     def parse_pubsub_message(self, envelope: PubSubPushEnvelope) -> PlatformEvent:
         """Decodes base64 payload from GCP Pub/Sub push subscription and parses into PlatformEvent."""
@@ -222,7 +229,7 @@ class EventProcessorService:
             status="queued",
         )
 
-        # 6. Schedule delivery task via Cloud Tasks
+        # 6. Build delivery task payload
         task_payload = EmailDeliveryTaskPayload(
             notification_id=notification_id,
             app_id=source,
@@ -233,6 +240,36 @@ class EventProcessorService:
             attempt_number=1,
             correlation_id=event.metadata.correlation_id,
         )
+
+        # For interactive OTP verification events, perform immediate direct delivery
+        # to eliminate Cloud Tasks queue delay and redundant Cloud Run HTTP callback latency
+        if self.delivery_worker and event_type in {
+            "user.email_verification_requested",
+            "user.password_reset_requested",
+        }:
+            try:
+                task_res = await self.delivery_worker.execute_task(task_payload)
+                return EventIngestResponse(
+                    status="accepted",
+                    event_id=event_id,
+                    notification_id=notification_id,
+                    action_taken="delivered" if task_res.status == "sent" else "processed",
+                )
+            except Exception as exc:
+                logger.warning(
+                    "Direct OTP delivery failed for event %s; falling back to Cloud Tasks queue: %s",
+                    event_id,
+                    exc,
+                )
+                await self.tasks_dispatcher.enqueue_delivery_task(task_payload)
+                return EventIngestResponse(
+                    status="accepted",
+                    event_id=event_id,
+                    notification_id=notification_id,
+                    action_taken="queued",
+                )
+
+        # 7. Asynchronously schedule non-urgent background tasks via Cloud Tasks
         await self.tasks_dispatcher.enqueue_delivery_task(task_payload)
 
         return EventIngestResponse(

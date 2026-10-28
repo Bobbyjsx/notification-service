@@ -107,17 +107,6 @@ def get_notification_service(
     )
 
 
-def get_event_processor_service(
-    db: AsyncClient = Depends(get_db),
-    tasks_dispatcher: CloudTasksDispatcher = Depends(get_tasks_dispatcher),
-) -> EventProcessorService:
-    return EventProcessorService(
-        notification_repo=NotificationRepository(db),
-        idempotency_repo=IdempotencyRepository(db),
-        tasks_dispatcher=tasks_dispatcher,
-    )
-
-
 def get_delivery_worker_service(
     db: AsyncClient = Depends(get_db),
     email_provider: EmailProvider = Depends(get_email_provider),
@@ -126,6 +115,19 @@ def get_delivery_worker_service(
         notification_repo=NotificationRepository(db),
         attempt_repo=DeliveryAttemptRepository(db),
         email_provider=email_provider,
+    )
+
+
+def get_event_processor_service(
+    db: AsyncClient = Depends(get_db),
+    tasks_dispatcher: CloudTasksDispatcher = Depends(get_tasks_dispatcher),
+    delivery_worker: DeliveryWorkerService = Depends(get_delivery_worker_service),
+) -> EventProcessorService:
+    return EventProcessorService(
+        notification_repo=NotificationRepository(db),
+        idempotency_repo=IdempotencyRepository(db),
+        tasks_dispatcher=tasks_dispatcher,
+        delivery_worker=delivery_worker,
     )
 
 

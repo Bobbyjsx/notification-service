@@ -49,13 +49,14 @@ def create_test_service_token(
 @pytest.fixture(autouse=True)
 def clean_firestore_db():
     """Wipe the Firestore emulator database via its REST API between tests."""
-    try:
-        httpx.delete(
-            "http://127.0.0.1:8080/emulator/v1/projects/test-project/databases/(default)/documents",
-            timeout=2.0,
-        )
-    except httpx.RequestError:
-        pass
+    for db_name in ("(default)", "notification-service-db"):
+        try:
+            httpx.delete(
+                f"http://127.0.0.1:8080/emulator/v1/projects/test-project/databases/{db_name}/documents",
+                timeout=2.0,
+            )
+        except httpx.RequestError:
+            pass
     yield
 
 
